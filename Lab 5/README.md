@@ -188,47 +188,40 @@ int main() {
 ---
 
 ---
-
 ## **Section B: Queue (FIFO Data Structure)**
 
-Because a Queue is **FIFO** (First In, First Out), elements are added at one end and removed from the other. To keep our operations at $\mathcal{O}(1)$ time complexity, we maintain two pointers: `front` (equivalent to head) and `rear` (equivalent to tail).
 
-### **Part 1: Defining the Node and Queue Structure (Build)**
 
-We will initialize an empty queue where both `front` and `rear` pointers are set to `NULL`.
+### **Part 1: Defining the Node and Queue (Build)**
+
+
 
 ```cpp
 #include <iostream>
 using namespace std;
 
-// Structure for an individual node
 struct Node {
     int val;
     Node *next;
 };
 
-// Structure to manage the Queue
 struct Queue {
-    Node *front;
-    Node *rear;
+    Node *headPtr; // Renamed so we can use 'front()' for the function
 
-    // Constructor to initialize an empty queue
     Queue() {
-        front = NULL;
-        rear = NULL;
-        cout << "Linked List Queue initialized!\n";
+        headPtr = NULL;
+        cout << "STL-Style Queue initialized!\n";
     }
 
-    bool isEmpty() {
-        return front == NULL;
+    bool empty() { // STL uses empty() instead of isEmpty()
+        return headPtr == NULL;
     }
 };
 
 int main() {
-    // Creating the Queue object
     Queue q;
     
-    if(q.isEmpty()) {
+    if(q.empty()) {
         cout << "The queue is currently empty.\n";
     }
 
@@ -237,11 +230,13 @@ int main() {
 
 ```
 
----
+### **Part 2: Inserting into the Queue (`push_back`)**
 
-### **Part 2: Inserting into the Queue (`enqueue`)**
+Because a queue adds to the _back_ of the line, we use `push_back()`. We traverse to the end of the list and attach the new node.
 
-To enqueue, we create a new node and add it to the `rear` (tail) of the linked list. If the queue is empty, the new node becomes both the `front` and the `rear`.
+  
+
+
 
 ```cpp
 #include <iostream>
@@ -253,54 +248,52 @@ struct Node {
 };
 
 struct Queue {
-    Node *front;
-    Node *rear;
+    Node *headPtr;
 
     Queue() {
-        front = NULL;
-        rear = NULL;
-        cout << "Linked List Queue initialized!\n";
+        headPtr = NULL;
+        cout << "STL-Style Queue initialized!\n";
     }
 
-    // Insert an element at the rear - Time Complexity: O(1)
-    void enqueue(int x) {
+    // Insert at the end - STL calls this push_back()
+    void push_back(int x) {
         Node *newNode = new Node;
         newNode->val = x;
-        newNode->next = NULL; // As it's added at the rear, next is always NULL
+        newNode->next = NULL; 
 
-        // If the queue is completely empty
-        if (front == NULL && rear == NULL) {
-            front = rear = newNode;
-            cout << "Enqueued " << x << " to the queue.\n";
+        if (headPtr == NULL) {
+            headPtr = newNode;
+            cout << "Pushed " << x << " to the back.\n";
             return;
         }
 
-        // Otherwise, attach to the current rear and update the rear pointer
-        rear->next = newNode;
-        rear = newNode;
+        Node *cur = headPtr;
+        while (cur->next != NULL) {
+            cur = cur->next;
+        }
+        cur->next = newNode;
         
-        cout << "Enqueued " << x << " to the queue.\n";
+        cout << "Pushed " << x << " to the back.\n";
     }
 };
 
 int main() {
     Queue q;
 
-    // Test enqueueing elements
-    q.enqueue(5);
-    q.enqueue(15);
-    q.enqueue(25);
+    q.push_back(5);
+    q.push_back(15);
+    q.push_back(25);
 
     return 0;
 }
 
 ```
 
----
+### **Part 3: Viewing (`front`) and Deleting (`pop_front`)**
 
-### **Part 3: Printing and Deletion (`dequeue`)**
+Just like actual C++ STL, `front()` will return the value at the start of the queue, and `pop_front()` will delete it without returning anything.
 
-To dequeue, we remove the node at the `front` (head) of the list. We must store the front node in a temporary pointer, advance the `front` pointer, and delete the old node to avoid memory leaks. If the queue becomes empty after deletion, we also must reset `rear` to `NULL`.
+
 
 ```cpp
 #include <iostream>
@@ -312,59 +305,61 @@ struct Node {
 };
 
 struct Queue {
-    Node *front;
-    Node *rear;
+    Node *headPtr;
 
     Queue() {
-        front = NULL;
-        rear = NULL;
-        cout << "Linked List Queue initialized!\n";
+        headPtr = NULL;
+        cout << "STL-Style Queue initialized!\n";
     }
 
-    void enqueue(int x) {
+    void push_back(int x) {
         Node *newNode = new Node;
         newNode->val = x;
         newNode->next = NULL;
 
-        if (front == NULL && rear == NULL) {
-            front = rear = newNode;
+        if (headPtr == NULL) {
+            headPtr = newNode;
             return;
         }
 
-        rear->next = newNode;
-        rear = newNode;
+        Node *cur = headPtr;
+        while (cur->next != NULL) {
+            cur = cur->next;
+        }
+        cur->next = newNode;
     }
 
-    // Remove the front element - Time Complexity: O(1)
-    int dequeue() {
-        if (front == NULL) {
-            cout << "Queue Underflow! Nothing to dequeue.\n";
-            return -1;
+    // View the first element without removing it
+    int front() {
+        if (headPtr == NULL) {
+            cout << "Queue is empty!\n";
+            return -1; 
         }
-
-        Node *temp = front;        // Hold the current front node
-        int dequeuedVal = temp->val; // Extract the value
-
-        front = front->next;       // Move front pointer to the next node
-
-        // If moving the front pointer made the queue empty, reset rear to NULL
-        if (front == NULL) {
-            rear = NULL;
-        }
-
-        delete temp;               // Free the memory
-        return dequeuedVal;
+        return headPtr->val;
     }
 
-    // Print elements from front to rear - Time Complexity: O(n)
+    // Remove the front element (Returns void, just like STL)
+    void pop_front() {
+        if (headPtr == NULL) {
+            cout << "Queue Underflow! Nothing to pop.\n";
+            return;
+        }
+
+        Node *temp = headPtr;        // Hold the current front node
+        headPtr = headPtr->next;     // Move head pointer to the next node
+
+        delete temp;                 // Free the memory
+    }
+
+    // Helper to visualize the queue
     void printQueue() {
-        if (front == NULL) {
+        if (headPtr == NULL) {
             cout << "Queue is Empty!\n";
             return;
         }
         
-        cout << "Queue (Front to Rear): ";
-        Node *cur = front;
+        cout << "Queue: ";
+        Node *cur = headPtr;
         while (cur != NULL) {
             cout << cur->val;
             if (cur->next != NULL) cout << " <- ";
@@ -377,23 +372,28 @@ struct Queue {
 int main() {
     Queue q;
 
-    q.enqueue(5);
-    q.enqueue(15);
-    q.enqueue(25);
+    q.push_back(5);
+    q.push_back(15);
+    q.push_back(25);
     
-    cout << "\nAfter enqueues:\n";
-    q.printQueue(); // Expected: 5 <- 15 <- 25
+    cout << "\nAfter pushing elements:\n";
+    q.printQueue(); 
 
-    cout << "\nDequeued element: " << q.dequeue() << "\n"; // Removes 5
+    // STL Way: View the front element, then pop it
+    cout << "\nFront element is: " << q.front() << "\n";
+    cout << "Popping front element...\n";
+    q.pop_front(); 
     
-    cout << "\nAfter dequeue:\n";
-    q.printQueue(); // Expected: 15 <- 25
+    cout << "\nAfter popping:\n";
+    q.printQueue(); 
 
-    q.dequeue(); // Removes 15
-    q.dequeue(); // Removes 25
+    // Do it again
+    cout << "\nFront element is now: " << q.front() << "\n";
+    q.pop_front();
+    q.pop_front();
     
-    cout << "\nAfter dequeueing all elements:\n";
-    q.printQueue(); // Expected: Queue is Empty!
+    cout << "\nAfter popping all elements:\n";
+    q.printQueue(); 
 
     return 0;
 }
